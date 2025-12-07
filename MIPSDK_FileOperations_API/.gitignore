@@ -1,0 +1,155 @@
+###############
+# Build output
+###############
+bin/
+obj/
+out/
+artifacts/
+
+#####################
+# .NET Core / ASP.NET
+#####################
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+history/
+*.code-workspace
+
+##############################
+# Logs / temp / trace files
+##############################
+*.log
+*.tlog
+*.trace
+*.svclog
+*.pid
+
+#################################
+# Build configuration / packaging
+#################################
+*.cache
+*.config.user
+*.dbmdl
+*.jfm
+*.pdb
+*.mdb
+*.pfx
+*.snk
+*.publishsettings
+
+##############################
+# IIS / Web API artifacts
+##############################
+iisexpress/
+App_Data/
+wwwroot/lib/
+wwwroot/node_modules/
+
+########################
+# Node / npm (if used)
+########################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+###############################
+# Secrets / sensitive files
+###############################
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.secrets.json
+secrets.json
+
+# If you want to track appsettings.json but never real secrets,
+# uncomment this line:
+# appsettings.json
+
+###############################
+# Certificates / private keys
+###############################
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+
+##################################
+# Visual Studio working directories
+##################################
+.ReSharper*/
+*_Resharper.*
+*.DotSettings.user
+*.vs/
+.vs/
+
+##################################
+# Azure / Identity / MIP SDK cache
+##################################
+#mip_cache or custom folder
+mip-cache/
+mip_cache/
+*.mipc
+
+##################################
+# Temporary data files
+##################################
+*.tmp
+*.temp
+*.bak
+*.old
+
+##################################
+# Publish profiles
+##################################
+Properties/PublishProfiles/
+*.pubxml
+*.pubxml.user
+
+##################################
+# NuGet
+##################################
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+project.lock.json
+project.fragment.lock.json
+
+##################################
+# Coverage / test output
+##################################
+TestResult*/
+TestResults/
+*.coverage
+*.coveragexml
+.coverage/
+.coveragexml/
+.trx
+.nCrunch_*
+nCrunchTemp_*
+
+##################################
+# OS-specific files
+##################################
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
