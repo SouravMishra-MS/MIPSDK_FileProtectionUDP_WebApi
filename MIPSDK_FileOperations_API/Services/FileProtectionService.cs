@@ -22,15 +22,21 @@ namespace MIPSDK_FileOperations_API.Services
     {
         private readonly MipSdkOptions _mipOptions;
         private readonly AuthService _authService;
+        private readonly ILogger<FileProtectionService> _logger;
+        private readonly ILoggerFactory _loggerFactory;
         private static bool _mipInitialized;
         private static readonly object _initLock = new();
 
         public FileProtectionService(
             IOptions<MipSdkOptions> mipOptions,
-            AuthService authService)
+            AuthService authService,
+            ILogger<FileProtectionService> logger,
+            ILoggerFactory loggerFactory)
         {
             _mipOptions = mipOptions.Value;
             _authService = authService;
+            _logger = logger;
+            _loggerFactory = loggerFactory;
             EnsureMipInitialized();
         }
 
@@ -45,6 +51,7 @@ namespace MIPSDK_FileOperations_API.Services
                 // Match console app behaviour: initialize File SDK
                 MIP.Initialize(MipComponent.File);
                 _mipInitialized = true;
+                _logger.LogInformation("MIP SDK initialized");
             }
         }
 
@@ -62,6 +69,8 @@ namespace MIPSDK_FileOperations_API.Services
             if (string.IsNullOrWhiteSpace(definition.OutputFolderPath))
                 throw new ArgumentException("OutputFolderPath is required in protectionDefinition.", nameof(definition));
 
+            _logger.LogInformation("Starting file protection for: {FileName}", originalFileName);
+
             var outputFolder = definition.OutputFolderPath;
 
             // Ensure output directory exists
@@ -75,7 +84,7 @@ namespace MIPSDK_FileOperations_API.Services
             };
 
             // Auth delegate that uses OBO via AuthService
-            var authDelegate = new AuthDelegateImpl(_authService, userAccessToken);
+            var authDelegate = new AuthDelegateImpl(_authService, userAccessToken, _loggerFactory.CreateLogger<AuthDelegateImpl>());
 
             var mipConfig = new MipConfiguration(
                 appInfo,
@@ -104,6 +113,8 @@ namespace MIPSDK_FileOperations_API.Services
 
             var upn = user.Identity?.Name ?? "unknown@unknown";
             var identityId = $"{upn}-webapi";
+
+            _logger.LogInformation("Creating file engine for identity: {IdentityId}", identityId);
 
             var fileEngineSettings = new FileEngineSettings(identityId, authDelegate, string.Empty, "en-us")
             {
@@ -139,6 +150,7 @@ namespace MIPSDK_FileOperations_API.Services
                     if (rights.Count == 0) continue;
 
                     userRightsList.Add(new UserRights(new List<string> { perm.Email }, rights));
+                    _logger.LogInformation("Added permissions for {Email}: {Rights}", perm.Email, string.Join(", ", rights));
                 }
             }
 
@@ -148,6 +160,8 @@ namespace MIPSDK_FileOperations_API.Services
                 userRightsList.Add(new UserRights(
                     new List<string> { callerEmail },
                     new List<string> { Rights.Owner }));
+                _logger.LogInformation("Added owner permissions for caller: {CallerEmail}", callerEmail);
+
             }
 
             if (userRightsList.Count == 0)
@@ -165,6 +179,8 @@ namespace MIPSDK_FileOperations_API.Services
                     await inputStream.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
                 }
 
+                _logger.LogInformation("Created handler for temporary file");
+
                 // Create handler and set protection
                 var handler = await fileEngine.CreateFileHandlerAsync(
                         tempInputPath,
@@ -174,6 +190,8 @@ namespace MIPSDK_FileOperations_API.Services
 
                 var descriptor = new ProtectionDescriptor(userRightsList);
                 handler.SetProtection(descriptor, new ProtectionSettings());
+
+                _logger.LogInformation("Committing protected file");
 
                 await handler.CommitAsync(tempOutputPath).ConfigureAwait(false);
 
@@ -189,6 +207,8 @@ namespace MIPSDK_FileOperations_API.Services
                 File.Copy(tempOutputPath, serverFilePath, overwrite: true);
 
                 var fi = new FileInfo(serverFilePath);
+
+                _logger.LogInformation("File protection completed successfully - Output: {OutputPath}, Size: {Size} bytes", serverFilePath, fi.Length);
 
                 return new ProtectionFileResponseDto
                 {
